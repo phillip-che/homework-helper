@@ -34,7 +34,12 @@ client.on('interactionCreate', async interaction => {
 		await interaction.reply(`Your tag: ${interaction.user.tag}\nYour id: ${interaction.user.id}`);
 	} else if (commandName === 'chegg') {
         const link = interaction.options.getString('link');
-        await interaction.reply(interaction.user.tag + ' sent this link: ' + link);
+        if(!link.includes('https://www.chegg.com/')) {
+            await interaction.reply('Invalid Link!');
+        } else {
+            interaction.reply('Sending answer to: ' + link);
+            screenshot(link); 
+        }
     }
 });
 
@@ -43,8 +48,7 @@ client.on('ready', () => {
 	console.log('Bot Online!');
 });
 
-const screenshot = async () => {
-
+const screenshot = async (link) => {
     const browser = await puppeteer.launch({
         headless: false
     })
@@ -54,29 +58,26 @@ const screenshot = async () => {
 
     const page = await browser.newPage()
 
-
-    await page.setViewport({
-        width: 1280,
-        height: 800
-    })
-
     await page.setUserAgent(UA)
     await page.setJavaScriptEnabled(true)
-  
     await page.goto('https://www.chegg.com/Auth/Login')
-    // await page.goto('https://bot.sannysoft.com/')
-    await new Promise(r => setTimeout(r, 3000))
+    await new Promise(r => setTimeout(r, 1000))
+
+    await page.waitForSelector("#emailForSignIn");
+    await page.type("#emailForSignIn", "theboisarehere@gmail.com", {delay: 100});
+    await page.type("#passwordForSignIn", "Pche_415251", {delay: 100});
+    await page.click(".login-button.button.flat");
+
+    await new Promise(r => setTimeout(r, 1000))
+
+    await page.goto(link, { waitUntil: 'networkidle2' });
+    
     await page.screenshot({
         path: 'test.png',
         fullPage: true
     })
 
-    await page.waitForSelector("#emailForSignIn");
-    await page.type("#emailForSignIn", "theboisarehere@gmail.com", {delay: 250});
-    await page.type("#passwordForSignIn", "Pche_415251", {delay: 250});
-    await page.click(".login-button.button.flat");
     // await browser.close();
   };
   
   client.login(token);
-//   screenshot();
